@@ -1,0 +1,105 @@
+
+R version 3.4.1 (2017-06-30) -- "Single Candle"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> rm(list=ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 251954 13.5     460000 24.6   350000 18.7
+Vcells 441708  3.4    1023718  7.9   786407  6.0
+> 
+> # library(devtools)
+> # install_github("dragontaoran/TwoPhaseReg")
+> # library(TwoPhaseReg)
+> library(TwoPhaseReg, lib.loc="/nas02/home/t/a/taor/Rcode/v11_Rlibs")
+> library(survival)
+> 
+> dat = nwtco
+> dat$stage2 = as.numeric(dat$stage == 2)
+> dat$stage3 = as.numeric(dat$stage == 3)
+> dat$stage4 = as.numeric(dat$stage == 4)
+> dat$uh = as.numeric(dat$histol == "2")
+> dat$luh = as.numeric(dat$instit == "2")
+> dat$bs1 = dat$luh
+> dat$bs2 = 1-dat$luh
+> dat$age = dat$age/12
+> 
+> #### opt
+> martingale_residual = coxph(Surv(edrel, rel)~stage2+stage3+stage4+age, data=dat)$residuals
+> 
+> id0 = which(dat$luh == 0)
+> ns0 = length(id0)
+> id1 = which(dat$luh == 1)
+> ns1 = length(id1)
+> martingale_residual[id0] = martingale_residual[id0]*sd(dat$uh[id0])
+> martingale_residual[id1] = martingale_residual[id1]*sd(dat$uh[id1])
+> order_resi0 = order(martingale_residual[id0])
+> order_resi1 = order(martingale_residual[id1])
+> 
+> n2 = 571
+> best_k0 = 368
+> best_k1 = n2-best_k0
+> phase2_tmp = c(id0[order_resi0[1:best_k0]], id0[order_resi0[(ns0-best_k0+1):ns0]],
++                id1[order_resi1[1:best_k1]], id1[order_resi1[(ns1-best_k1+1):ns1]])
+> mart.opt = martingale_residual[phase2_tmp]
+> strata.opt = dat$luh[phase2_tmp]
+> best_var = var(mart.opt[which(strata.opt == 0)])*sum(strata.opt == 0)+var(mart.opt[which(strata.opt == 1)])*sum(strata.opt == 1)
+> for (k0 in 369:521) {
++     k1= n2-k0
++     phase2_tmp = c(id0[order_resi0[1:k0]], id0[order_resi0[(ns0-k0+1):ns0]],
++                    id1[order_resi1[1:k1]], id1[order_resi1[(ns1-k1+1):ns1]])
++     mart.opt = martingale_residual[phase2_tmp]
++     strata.opt = dat$luh[phase2_tmp]
++     tmp_var = var(mart.opt[which(strata.opt == 0)])*sum(strata.opt == 0)+var(mart.opt[which(strata.opt == 1)])*sum(strata.opt == 1)
++     if (tmp_var > best_var) {
++         best_k0 = k0
++         best_k1 = k1
++         best_var = tmp_var
++     }
++ }
+> phase2 = c(id0[order_resi0[1:best_k0]], id0[order_resi0[(ns0-best_k0+1):ns0]],
++            id1[order_resi1[1:best_k1]], id1[order_resi1[(ns1-best_k1+1):ns1]])
+> table(dat$instit[phase2], dat$rel[phase2])
+   
+      0   1
+  1 368 368
+  2 250 156
+> dat1 = dat
+> dat1$uh[-phase2] = NA
+> res_opt = smle(Y="edrel", Delta="rel", X="uh", Z=c("stage2","stage3","stage4","age"), 
++                Bspline_Z=c("bs1","bs2"), data=dat1, model="coxph", hn_scale=10)
+> res_opt
+$coefficients
+         Estimate         SE Statistic      p-value
+uh     1.62688847 0.09343269 17.412411 0.000000e+00
+stage2 0.67428680 0.12279155  5.491313 3.989575e-08
+stage3 0.78057394 0.12242661  6.375852 1.819490e-10
+stage4 1.14629487 0.13403870  8.551969 0.000000e+00
+age    0.07266747 0.01165036  6.237358 4.450214e-10
+
+$convergence
+[1] TRUE
+
+$convergence_var
+[1] TRUE
+
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 29.089   0.072  29.210 

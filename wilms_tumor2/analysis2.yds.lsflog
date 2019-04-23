@@ -1,0 +1,31 @@
+Sender: LSF System <lsfadmin@c-196-09>
+Subject: Job 659109: <R CMD BATCH --no-save --no-restore analysis2.yds.R> in cluster <killdevil> Done
+
+Job <R CMD BATCH --no-save --no-restore analysis2.yds.R> was submitted from host <killdevil-login1> by user <taor> in cluster <killdevil>.
+Job was executed on host(s) <c-196-09>, in queue <day>, as user <taor> in cluster <killdevil>.
+</nas02/home/t/a/taor> was used as the home directory.
+</nas02/home/t/a/taor/wilms_tumor2> was used as the working directory.
+Started at Sun Feb 25 18:30:41 2018
+Results reported on Sun Feb 25 18:31:35 2018
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+R CMD BATCH --no-save --no-restore analysis2.yds.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   53.04 sec.
+    Total Requested Memory :                     0.50 GB
+    Delta Memory :                               -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   54 sec.
+    Turnaround time :                            60 sec.
+
+The output (if any) follows:
+

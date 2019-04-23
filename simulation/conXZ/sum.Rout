@@ -1,0 +1,45 @@
+
+R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> gamma_set = c(0, 0.5, 1)
+> beta_set = c(0, 0.3, 0.5)
+> tau_set = c(0, -0.7)
+> rho = 0.2
+> 
+> NJOBS = 500
+> 
+> for (tau in tau_set) {
++     for (beta in beta_set) {
++         for (gamma in gamma_set) {
++             res = read.table(paste("res/", 1, "/tau", tau, "_beta", beta, "_gamma",
++                 gamma, "_rho", rho, ".tab", sep=""), sep="\t", header=T, as.is=TRUE)
++             for (njob in 2:NJOBS) {
++                 tmp = read.table(paste("res/", njob, "/tau", tau, "_beta", beta, "_gamma",
++                     gamma, "_rho", rho, ".tab", sep=""), sep="\t", header=T, as.is=TRUE)
++                 res = rbind(res, tmp)
++             }
++             write.table(res, file=paste("results/tau", tau, "_beta", beta, "_gamma",
++                 gamma, "_rho", rho, ".tab", sep=""), quote=F, sep="\t", row.names=FALSE)
++         }
++     }
++ }
+> 
+> proc.time()
+   user  system elapsed 
+ 12.019   1.459  26.216 

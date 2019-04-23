@@ -1,0 +1,235 @@
+
+R version 3.1.2 (2014-10-31) -- "Pumpkin Helmet"
+Copyright (C) 2014 The R Foundation for Statistical Computing
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # args = commandArgs(TRUE)
+> 
+> # start.snp = as.integer(args[1])
+> # end.snp = as.integer(args[2])
+> # njob = as.integer(args[3])
+> # wd = args[4]
+> 
+> library(twophase, lib.loc="/home/users/taor/Research/two_phase_GLM/R_package/v8_Rlibs")
+> 
+> FN.pheno = "/home/users/taor/Research/two_phase_GLM/pheno.p1.dpr.tab"
+> FN.geno = "/home/users/taor/Research/two_phase_GLM/ESP_DPR/geno_maf0.05.tab"
+> # FN.out = paste(wd, "/", njob, ".tab", sep="")
+> FN.out = "/home/users/taor/Research/two_phase_GLM/design/esp/analysis_n200.out"
+> 
+> #### read phenotype data ####
+> pheno = read.table(FN.pheno, sep="\t", header=T, as.is=T)
+> id_missing = which(is.na(pheno$esp_bmi_baseline))
+> # id_missing = which(is.na(pheno$esp_ldl_baseline) | is.na(pheno$esp_lipid_med_baseline))
+> pheno = pheno[-id_missing,]
+> 
+> pheno$aric = as.numeric(pheno$esp_cohort == "ARIC")
+> pheno$cardia = as.numeric(pheno$esp_cohort == "CARDIA")
+> pheno$chs = as.numeric(pheno$esp_cohort == "CHS")
+> pheno$fhs = as.numeric(pheno$esp_cohort == "FHS")
+> pheno$jhs = as.numeric(pheno$esp_cohort == "JHS")
+> pheno$mesa = as.numeric(pheno$esp_cohort == "MESA")
+> pheno$whi = as.numeric(pheno$esp_cohort == "WHI")
+> table(pheno$esp_cohort, useNA="ifany")
+
+  ARIC CARDIA    CHS    FHS    JHS   MESA    WHI 
+   108     53     93     65     55    207    381 
+> pheno$gender = as.numeric(pheno$esp_sex_selfreport == "Male")
+> table(pheno$esp_sex_selfreport, useNA="ifany")
+
+Female   Male 
+   483    479 
+> pheno$logbmi = log(pheno$esp_bmi_baseline)
+> # pheno$logldl = pheno$esp_ldl_baseline
+> # pheno$logldl[which(pheno$esp_lipid_med_baseline == 1)] = pheno$logldl[which(pheno$esp_lipid_med_baseline == 1)]/0.75
+> # pheno$logldl = log(pheno$logldl)
+> pheno$race = as.numeric(pheno$esp_race_selfreport == "European American")
+> 
+> y = scale(pheno$logbmi, TRUE, TRUE)
+> # y = scale(pheno$logldl, TRUE, TRUE)
+> age = scale(pheno$esp_age_baseline, TRUE, TRUE)
+> z = pheno$race
+> w = cbind(age, pheno$aric, pheno$cardia, pheno$chs, pheno$fhs, pheno$jhs, pheno$mesa)
+> 
+> my = mean(pheno$logbmi)
+> sy = sd(pheno$logbmi)
+> # my = mean(pheno$logldl)
+> # sy = sd(pheno$logldl)
+> ma = mean(pheno$esp_age_baseline)
+> sa = sd(pheno$age)
+> 
+> covariates = c("intercept", "snp", "race", "age", "aric", "cardia", "chs", "fhs", "jhs", "mesa") 
+> 
+> Tmle = diag(10)
+> Tmle[1,1] = Tmle[2,2] = Tmle[3,3] = 0
+> Tmle[1,3] = Tmle[2,1] = Tmle[3,2] = 1
+> 
+> D = matrix(0, 10, 10)
+> D[1,1] = D[2,2] = D[3,3] = D[5,5] = D[6,6] = D[7,7] = D[8,8] = D[9,9] = D[10,10] = sy
+> D[4,4] = sy/sa
+> D[1,4] = -sy*ma/sa
+> 
+> #### read genotype data ####
+> geno = read.table(FN.geno, sep="\t", as.is=T)
+> # geno = geno[start.snp:end.snp,]
+> # geno = geno[1:3,]
+> 
+> #### run analysis ####
+> sink(FN.out)
+> cat("snp\tvar_aa\tvar_ea\tods_beta\tods_se\tods_pvalue\trds_beta\trds_se\trds_pvalue\topt_beta\topt_se\topt_pvalue\n")
+> sink()
+> 
+> ## ods
+> ods_order = order(pheno$logbmi)
+> # ods_order = order(pheno$logldl)
+> ods_phase2_id = c(ods_order[1:100], ods_order[(nrow(pheno)-100+1):nrow(pheno)])
+> 
+> ## rds
+> resy = residuals(lm(logbmi~race+esp_age_baseline+aric+cardia+chs+fhs+jhs+mesa, data=pheno))
+> # resy = residuals(lm(logldl~race+esp_age_baseline+aric+cardia+chs+fhs+jhs+mesa, data=pheno))
+> rds_order = order(resy)
+> rds_phase2_id = c(rds_order[1:100], rds_order[(nrow(pheno)-100+1):nrow(pheno)])
+> 
+> #### analysis ####
+> for (i in 1:nrow(geno)) {
++ 
++     snp = geno[i,1]
++ 
++     x = as.numeric(geno[i,-1])
++ 	x = x[-id_missing]
++ 
++ 	var_aa = var(x[which(pheno$race == 0)], na.rm=TRUE)
++ 	var_ea = var(x[which(pheno$race == 1)], na.rm=TRUE)
++     
++ 	sink(FN.out, append=T)
++     cat(paste(snp, var_aa, var_ea, sep='\t'))
++ 	cat('\t')
++     sink()
++ 
++     id = which(!is.na(x))
++     N = length(id)
++ 
++ 	## ods
++     id_phase2 = intersect(ods_phase2_id, id)
++     y1 = c(y[id_phase2], y[-id_phase2])
++     z1 = c(z[id_phase2], z[-id_phase2])
++     w1 = rbind(w[id_phase2,], w[-id_phase2,])
++     x1 = x[id_phase2]
++     n = length(id_phase2)
++     ods_res = mle1(Y=y1, X=x1, Z=z1, W=w1, N_SIEVE=5)
++ 
++     ods_res$theta = D %*% Tmle %*% ods_res$theta
++     ods_res$theta[1] = ods_res$theta[1] + my
++     ods_res$cov_theta = D %*% Tmle %*% ods_res$cov_theta %*% t(Tmle) %*% t(D)
++ 
++     ods_beta = ods_res$theta[2]
++     if (ods_res$cov_theta[2,2] < 0) {
++         ods_se = NA
++     } else {
++         ods_se = sqrt(ods_res$cov_theta[2,2])
++     }
++     if (!is.na(ods_beta) & !is.na(ods_se)) {
++         ods_t = ods_beta/ods_se
++         ods_pvalue = 1-pchisq(ods_t^2, df=1)
++     } else {
++         ods_pvalue = NA
++     }
++ 	
++ 	sink(FN.out, append=T)
++     cat(paste(ods_beta, ods_se, ods_pvalue, sep="\t"))
++ 	cat('\t')
++ 	sink()
++ 
++ 	## rds
++     id_phase2 = intersect(rds_phase2_id, id)
++     y1 = c(y[id_phase2], y[-id_phase2])
++     z1 = c(z[id_phase2], z[-id_phase2])
++     w1 = rbind(w[id_phase2,], w[-id_phase2,])
++     x1 = x[id_phase2]
++     n = length(id_phase2)
++     rds_res = mle1(Y=y1, X=x1, Z=z1, W=w1, N_SIEVE=5)
++ 
++     rds_res$theta = D %*% Tmle %*% rds_res$theta
++     rds_res$theta[1] = rds_res$theta[1] + my
++     rds_res$cov_theta = D %*% Tmle %*% rds_res$cov_theta %*% t(Tmle) %*% t(D)
++ 
++     rds_beta = rds_res$theta[2]
++     if (rds_beta == -999.) {
++         rds_beta = NA
++     }
++     if (rds_res$cov_theta[2,2] < 0) {
++         rds_se = NA
++     } else {
++         rds_se = sqrt(rds_res$cov_theta[2,2])
++     }
++     if (!is.na(rds_beta) & !is.na(rds_se)) {
++         rds_t = rds_beta/rds_se
++         rds_pvalue = 1-pchisq(rds_t^2, df=1)
++     } else {
++         rds_pvalue = NA
++     }
++ 
++ 	sink(FN.out, append=T)
++     cat(paste(rds_beta, rds_se, rds_pvalue, sep="\t"))
++ 	cat('\t')
++ 	sink()
++ 
++ 	## opt
++ 	opt_criteria = resy
++ 	opt_criteria[which(pheno$race == 0)] = opt_criteria[which(pheno$race == 0)]*sqrt(var_aa)
++ 	opt_criteria[which(pheno$race == 1)] = opt_criteria[which(pheno$race == 1)]*sqrt(var_ea)
++ 	opt_order = order(opt_criteria)
++ 	opt_phase2_id = c(opt_order[1:100], opt_order[(nrow(pheno)-100+1):nrow(pheno)])
++ 	
++     id_phase2 = intersect(opt_phase2_id, id)
++     y1 = c(y[id_phase2], y[-id_phase2])
++     z1 = c(z[id_phase2], z[-id_phase2])
++     w1 = rbind(w[id_phase2,], w[-id_phase2,])
++     x1 = x[id_phase2]
++     n = length(id_phase2)
++     opt_res = mle1(Y=y1, X=x1, Z=z1, W=w1, N_SIEVE=5)
++ 
++     opt_res$theta = D %*% Tmle %*% opt_res$theta
++     opt_res$theta[1] = opt_res$theta[1] + my
++     opt_res$cov_theta = D %*% Tmle %*% opt_res$cov_theta %*% t(Tmle) %*% t(D)
++ 
++     opt_beta = opt_res$theta[2]
++     if (opt_beta == -999.) {
++         opt_beta = NA
++     }
++     if (opt_res$cov_theta[2,2] < 0) {
++         opt_se = NA
++     } else {
++         opt_se = sqrt(opt_res$cov_theta[2,2])
++     }
++     if (!is.na(opt_beta) & !is.na(opt_se)) {
++         opt_t = opt_beta/opt_se
++         opt_pvalue = 1-pchisq(opt_t^2, df=1)
++     } else {
++         opt_pvalue = NA
++     }
++ 
++ 	sink(FN.out, append=T)
++     cat(paste(opt_beta, opt_se, opt_pvalue, sep="\t"))
++ 	cat('\n')
++ 	sink()
++ }
+> 
+> 
+> proc.time()
+     user    system   elapsed 
+19496.018    35.266 19776.354 

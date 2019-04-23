@@ -1,0 +1,83 @@
+
+R version 3.4.1 (2017-06-30) -- "Single Candle"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> rm(list=ls())
+> gc()
+         used (Mb) gc trigger (Mb) max used (Mb)
+Ncells 251954 13.5     460000 24.6   350000 18.7
+Vcells 441708  3.4    1023718  7.9   786407  6.0
+> 
+> # library(devtools)
+> # install_github("dragontaoran/TwoPhaseReg")
+> # library(TwoPhaseReg)
+> # library(TwoPhaseReg, lib.loc="/nas02/home/t/a/taor/Rcode/v11_Rlibs")
+> library(survival)
+> 
+> dat = nwtco
+> dat$stage2 = as.numeric(dat$stage == 2)
+> dat$stage3 = as.numeric(dat$stage == 3)
+> dat$stage4 = as.numeric(dat$stage == 4)
+> dat$uh = as.numeric(dat$histol == "2")
+> dat$luh = as.numeric(dat$instit == "2")
+> dat$bs1 = dat$luh
+> dat$bs2 = 1-dat$luh
+> dat$age = dat$age/12
+> 
+> #### full cohort
+> table(dat$instit, dat$rel)
+   
+       0    1
+  1 3207  415
+  2  250  156
+> res_fc = summary(coxph(Surv(edrel, rel)~uh+stage2+stage3+stage4+age, data=dat, robust=TRUE))
+> res_fc
+Call:
+coxph(formula = Surv(edrel, rel) ~ uh + stage2 + stage3 + stage4 + 
+    age, data = dat, robust = TRUE)
+
+  n= 4028, number of events= 571 
+
+          coef exp(coef) se(coef) robust se      z Pr(>|z|)    
+uh     1.58389   4.87387  0.08869   0.08962 17.672  < 2e-16 ***
+stage2 0.66730   1.94898  0.12156   0.12229  5.457 4.85e-08 ***
+stage3 0.81737   2.26455  0.12077   0.12126  6.741 1.58e-11 ***
+stage4 1.15373   3.16999  0.13490   0.13748  8.392  < 2e-16 ***
+age    0.06789   1.07025  0.01492   0.01601  4.239 2.24e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+       exp(coef) exp(-coef) lower .95 upper .95
+uh         4.874     0.2052     4.089     5.810
+stage2     1.949     0.5131     1.534     2.477
+stage3     2.265     0.4416     1.786     2.872
+stage4     3.170     0.3155     2.421     4.150
+age        1.070     0.9344     1.037     1.104
+
+Concordance= 0.714  (se = 0.012 )
+Rsquare= 0.093   (max possible= 0.901 )
+Likelihood ratio test= 395.4  on 5 df,   p=0
+Wald test            = 439.6  on 5 df,   p=0
+Score (logrank) test = 544.1  on 5 df,   p=0,   Robust = 217.3  p=0
+
+  (Note: the likelihood ratio and score tests assume independence of
+     observations within a cluster, the Wald and robust score tests do not).
+> 
+> proc.time()
+   user  system elapsed 
+  1.532   0.057   1.688 

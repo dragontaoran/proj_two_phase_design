@@ -1,0 +1,50 @@
+WARNING: unknown option '-no-save'
+
+
+R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> gamma_set = c(0, 1, 2)
+> beta_set = c(0.5)
+> case_set = c(1, 2, 3)
+> prob_Z_set = c(0.3, 0.5, 0.7)
+> 
+> NJOBS = 100
+> 
+> subdir_o = "results"
+> dir.create(subdir_o, showWarnings=FALSE)
+> subdir = "res"
+> 
+> for (case in case_set) {
++     for (beta in beta_set) {
++         for (gamma in gamma_set) {
++ 			for (prob_Z in prob_Z_set) {
++             	res = read.table(paste(subdir, "/", 1, "/beta", beta, "_gamma", gamma, "_case", case, "_probZ", prob_Z, ".tab", sep=""), sep="\t", header=T, as.is=TRUE)
++             	for (njob in 2:NJOBS) {
++                 	tmp = read.table(paste(subdir, "/", njob, "/beta", beta, "_gamma", gamma, "_case", case, "_probZ", prob_Z, ".tab", sep=""), sep="\t", header=T, as.is=TRUE)
++                 	res = rbind(res, tmp)
++             	}
++             	write.table(res, file=paste(subdir_o, "/beta", beta, "_gamma",gamma, "_case", case, "_probZ", prob_Z, ".tab", sep=""), quote=F, sep="\t", row.names=FALSE)
++ 			}
++         }
++     }
++ }
+> 
+> proc.time()
+   user  system elapsed 
+  3.714   0.377   7.524 

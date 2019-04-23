@@ -1,0 +1,109 @@
+
+R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> gamma_set = c(0, 0.5, 1)
+> beta_set = c(0, 0.3, 0.5)
+> tau_set = c(0, -0.7)
+> rho = 0.2
+> FN_out = "summary.tab"
+> FN_out_bias = "summary_bias.tab"
+> FN_out_se = "summary_se.tab"
+> 
+> sink(FN_out_bias)
+> cat("tau\tbeta\tgamma\tSRS\tODS\tRDS\tOPS\tODS\tRDS\tPDS\tOPS\n")
+> sink()
+> 
+> sink(FN_out_se)
+> cat("tau\tbeta\tgamma\tSRS\tODS\tRDS\tOPS\tODS\tRDS\tPDS\tOPS\n")
+> sink()
+> 
+> sink(FN_out)
+> cat("tau\tbeta\tgamma\tODS\tRDS\tOPS\tODS\tRDS\tPDS\tOPS\n")
+> sink()
+> 
+> for (tau in tau_set) {
++     for (beta in beta_set) {
++         for (gamma in gamma_set) {
++             sink(FN_out_bias, append=TRUE)
++             cat(tau, '\t', beta, '\t', gamma, '\t', sep='')
++             sink()
++             
++             sink(FN_out_se, append=TRUE)
++             cat(tau, '\t', beta, '\t', gamma, '\t', sep='')
++             sink()
++             
++             sink(FN_out, append=TRUE)
++             cat(tau, '\t', beta, '\t', gamma, '\t', sep='')
++             sink()
++             
++             res = read.table(paste("results/tau", tau, "_beta", beta, "_gamma", gamma, "_rho", rho, ".tab", sep=""),
++                 sep="\t", header=TRUE)
++             id.exclude = c()
++             for (i in 1:8) {
++                 id.exclude = c(id.exclude, which(res[,i] == -999.))
++             }
++             res = res[-id.exclude,]
++             print(dim(res))
++             
++             sink(FN_out_bias, append=TRUE)
++             cat(mean(res$SRS)-beta, mean(res$ODS)-beta, mean(res$RDS)-beta, mean(res$OPS)-beta,
++                 mean(res$ODS_SRS)-beta, mean(res$RDS_SRS)-beta, mean(res$PDS)-beta, mean(res$OPS_SRS)-beta, sep="\t")
++ 			cat("\n")
++ 			sink()
++ 			
++ 			sink(FN_out_se, append=TRUE)
++ 			cat(sd(res$SRS), sd(res$ODS), sd(res$RDS), sd(res$OPS), sd(res$ODS_SRS), sd(res$RDS_SRS), sd(res$PDS), sd(res$OPS_SRS), sep="\t")
++ 			cat("\n")
++ 			sink()
++ 			
++ 			sink(FN_out, append=TRUE)
++ 			cat((sd(res$ODS)/sd(res$SRS))^(-2),
++ 			    (sd(res$RDS)/sd(res$SRS))^(-2),
++ 			    (sd(res$OPS)/sd(res$SRS))^(-2),
++ 			    (sd(res$ODS_SRS)/sd(res$SRS))^(-2),
++ 			    (sd(res$RDS_SRS)/sd(res$SRS))^(-2),
++ 			    (sd(res$PDS)/sd(res$SRS))^(-2),
++ 			    (sd(res$OPS_SRS)/sd(res$SRS))^(-2), sep="\t")
++ 			cat("\n")
++ 			sink()
++         }
++     }
++ }
+[1] 9941    8
+[1] 9944    8
+[1] 9948    8
+[1] 9938    8
+[1] 9937    8
+[1] 9937    8
+[1] 9911    8
+[1] 9898    8
+[1] 9900    8
+[1] 9926    8
+[1] 9934    8
+[1] 9932    8
+[1] 9858    8
+[1] 9861    8
+[1] 9865    8
+[1] 9633    8
+[1] 9626    8
+[1] 9636    8
+> 
+> proc.time()
+   user  system elapsed 
+  1.247   0.049   1.482 

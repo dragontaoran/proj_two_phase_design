@@ -1,0 +1,31 @@
+Sender: LSF System <lsfadmin@c-193-42>
+Subject: Job 602613: <R CMD BATCH --no-save --no-restore sum.R> in cluster <killdevil> Done
+
+Job <R CMD BATCH --no-save --no-restore sum.R> was submitted from host <killdevil-login2> by user <taor> in cluster <killdevil>.
+Job was executed on host(s) <c-193-42>, in queue <day>, as user <taor> in cluster <killdevil>.
+</nas02/home/t/a/taor> was used as the home directory.
+</nas02/home/t/a/taor/wilms_tumor> was used as the working directory.
+Started at Sat Feb 24 22:42:20 2018
+Results reported on Sat Feb 24 22:42:33 2018
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+R CMD BATCH --no-save --no-restore sum.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   0.98 sec.
+    Total Requested Memory :                     0.50 GB
+    Delta Memory :                               -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   13 sec.
+    Turnaround time :                            15 sec.
+
+The output (if any) follows:
+

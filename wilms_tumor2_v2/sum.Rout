@@ -1,0 +1,77 @@
+
+R version 3.4.1 (2017-06-30) -- "Single Candle"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> NJOBS = 100
+> subdir = "res"
+> 
+> res = read.table(paste(subdir, "/", 1, "/cc.tab", sep=""), sep="\t", header=T, as.is=TRUE)
+> for (njob in 2:NJOBS) {
++     tmp = read.table(paste(subdir, "/", njob, "/cc.tab", sep=""), sep="\t", header=T, as.is=TRUE)
++     res = rbind(res, tmp)
++ }
+> dim(res)
+[1] 1000   10
+> colMeans(res, na.rm=TRUE)
+    uh_est      uh_se stage2_est  stage2_se stage3_est  stage3_se stage4_est 
+1.63021990 0.11406524 0.67852827 0.12328497 0.79533220 0.12280112 1.07019176 
+ stage4_se    age_est     age_se 
+0.13758438 0.07649113 0.01445109 
+> 
+> res = read.table(paste(subdir, "/", 1, "/scc.tab", sep=""), sep="\t", header=T, as.is=TRUE)
+> for (njob in 2:NJOBS) {
++     tmp = read.table(paste(subdir, "/", njob, "/scc.tab", sep=""), sep="\t", header=T, as.is=TRUE)
++     res = rbind(res, tmp)
++ }
+> dim(res)
+[1] 1000   10
+> colMeans(res, na.rm=TRUE)
+    uh_est      uh_se stage2_est  stage2_se stage3_est  stage3_se stage4_est 
+1.65469633 0.09367514 0.66666108 0.12386827 0.79110366 0.12363253 1.13952853 
+ stage4_se    age_est     age_se 
+0.13600662 0.07703530 0.01319121 
+> 
+> res = read.table(paste(subdir, "/", 1, "/ncc.tab", sep=""), sep="\t", header=T, as.is=TRUE)
+> for (njob in 2:NJOBS) {
++     tmp = read.table(paste(subdir, "/", njob, "/ncc.tab", sep=""), sep="\t", header=T, as.is=TRUE)
++     res = rbind(res, tmp)
++ }
+> dim(res)
+[1] 1000   10
+> colMeans(res, na.rm=TRUE)
+    uh_est      uh_se stage2_est  stage2_se stage3_est  stage3_se stage4_est 
+1.63078062 0.11372526 0.67771131 0.12326962 0.79517773 0.12277611 1.07154580 
+ stage4_se    age_est     age_se 
+0.13751389 0.07633705 0.01444457 
+> 
+> res = read.table(paste(subdir, "/", 1, "/cm.tab", sep=""), sep="\t", header=T, as.is=TRUE)
+> for (njob in 2:NJOBS) {
++     tmp = read.table(paste(subdir, "/", njob, "/cm.tab", sep=""), sep="\t", header=T, as.is=TRUE)
++     res = rbind(res, tmp)
++ }
+> dim(res)
+[1] 1000   10
+> colMeans(res, na.rm=TRUE)
+    uh_est      uh_se stage2_est  stage2_se stage3_est  stage3_se stage4_est 
+1.65801075 0.09428344 0.66745623 0.12120543 0.79239296 0.12137462 1.14019190 
+ stage4_se    age_est     age_se 
+0.13436965 0.07694586 0.01317353 
+> 
+> proc.time()
+   user  system elapsed 
+  0.880   0.102   7.014 

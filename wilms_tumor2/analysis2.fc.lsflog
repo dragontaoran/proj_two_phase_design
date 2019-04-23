@@ -1,0 +1,31 @@
+Sender: LSF System <lsfadmin@c-196-03>
+Subject: Job 924551: <R CMD BATCH --no-save --no-restore analysis2.fc.R> in cluster <killdevil> Done
+
+Job <R CMD BATCH --no-save --no-restore analysis2.fc.R> was submitted from host <killdevil-login2> by user <taor> in cluster <killdevil>.
+Job was executed on host(s) <c-196-03>, in queue <day>, as user <taor> in cluster <killdevil>.
+</nas02/home/t/a/taor> was used as the home directory.
+</nas02/home/t/a/taor/wilms_tumor> was used as the working directory.
+Started at Wed Feb 14 00:31:17 2018
+Results reported on Wed Feb 14 00:31:24 2018
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+R CMD BATCH --no-save --no-restore analysis2.fc.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   1.65 sec.
+    Total Requested Memory :                     0.50 GB
+    Delta Memory :                               -
+    Max Processes :                              2
+    Max Threads :                                3
+    Run time :                                   7 sec.
+    Turnaround time :                            17 sec.
+
+The output (if any) follows:
+
